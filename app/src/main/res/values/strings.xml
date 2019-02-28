@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Test</string>
+    <string name="title_activity_printer">PrinterActivity</string>
+    <string name="action_settings">Settings</string>
+    <string name="printer">printer</string>
+    <string name="discovery">discovery</string>
+</resources>
