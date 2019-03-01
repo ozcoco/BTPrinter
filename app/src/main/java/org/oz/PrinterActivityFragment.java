@@ -1,5 +1,6 @@
 package org.oz;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -7,6 +8,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.util.ArrayMap;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,7 +19,7 @@ import com.clj.fastble.BleManager;
 import com.clj.fastble.data.BleDevice;
 import com.yf.btp.PrinterService;
 
-import org.oz.dailog.BTDailog;
+import org.oz.dailog.BTDialog;
 import org.oz.databinding.FragmentPrinterBinding;
 import org.oz.entity.BtDev;
 
@@ -33,6 +35,8 @@ import androidx.fragment.app.Fragment;
  */
 public class PrinterActivityFragment extends Fragment {
 
+    private static int BT_DEV_ID_GEN = 0;
+
     private FragmentPrinterBinding mBinding;
 
     private final Handles mHandles = new Handles();
@@ -41,7 +45,9 @@ public class PrinterActivityFragment extends Fragment {
 
     private Intent intentPrinterService;
 
-    private BTDailog mBTDailog;
+    private BTDialog mBTDialog;
+
+    private ArrayMap<String, Integer> macIdMap = new ArrayMap<>();
 
     public class Handles {
 
@@ -60,7 +66,7 @@ public class PrinterActivityFragment extends Fragment {
 
     private void discoveryBt() {
 
-        mBTDailog.show();
+        mBTDialog.show();
 
     }
 
@@ -100,15 +106,19 @@ public class PrinterActivityFragment extends Fragment {
 
     private void initBtDialog() {
 
-        mBTDailog = new BTDailog(getContext(), android.R.style.Theme_Material_Light_Dialog_NoActionBar_MinWidth);
+        mBTDialog = new BTDialog(getContext(), android.R.style.Theme_Material_Light_Dialog_NoActionBar_MinWidth);
 
-        mBTDailog.setOnControlListener(new BTDailog.OnControlListener() {
+        mBTDialog.setOnControlListener(new BTDialog.OnControlListener() {
             @Override
-            public void connect(BtDev dev) {
+            public void connect(BluetoothDevice dev) {
 
                 try {
 
-                    if (0 == mPrinterService.openPort(dev.getUuid(), PrinterService.PORT_TYPE_BLUETOOTH, dev.getMac(), 0)) {
+                    int devId = BT_DEV_ID_GEN++;
+
+                    macIdMap.put(dev.getAddress(), devId);
+
+                    if (0 == mPrinterService.openPort(devId, PrinterService.PORT_TYPE_BLUETOOTH, dev.getAddress(), 0)) {
 
                         Toast.makeText(getContext(), "connected!!!", Toast.LENGTH_SHORT).show();
                     }
@@ -121,10 +131,13 @@ public class PrinterActivityFragment extends Fragment {
             }
 
             @Override
-            public void disconnect(BtDev dev) {
+            public void disconnect(BluetoothDevice dev) {
 
                 try {
-                    mPrinterService.closePort(dev.getUuid());
+
+                    int devId = macIdMap.get(dev.getAddress());
+
+                    mPrinterService.closePort(devId);
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }

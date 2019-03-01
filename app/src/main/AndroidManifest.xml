@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     package="org.oz">
 
 
@@ -29,12 +28,6 @@
             </intent-filter>-->
         </activity>
 
-        <!-- <receiver android:name=".dailog.BTDailog$PairingRequest">
-             <intent-filter>
-                 <action android:name="android.bluetooth.device.action.PAIRING_REQUEST" />
-                 <action android:name="android.bluetooth.device.action.PAIRING_CANCEL" />
-             </intent-filter>
-         </receiver>-->
 
     </application>
 
