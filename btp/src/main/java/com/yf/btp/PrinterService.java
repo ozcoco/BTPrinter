@@ -13,10 +13,18 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import com.gprinter.aidl.GpService;
+import com.gprinter.command.GpCom;
 import com.gprinter.io.GpDevice;
+import com.gprinter.io.PortParameters;
+import com.gprinter.save.PortParamDataBase;
 import com.gprinter.service.GpPrintService;
 
 public class PrinterService extends Service {
+
+    public final static int PORT_TYPE_BLUETOOTH = PortParameters.BLUETOOTH;
+
+    public final static int PORT_TYPE_SERIAL = PortParameters.SERIAL;
+
 
     public static final String TAG = PrinterService.class.getCanonicalName();
 
@@ -87,7 +95,7 @@ public class PrinterService extends Service {
 
                 int id = intent.getIntExtra(GpPrintService.PRINTER_ID, 0);
 
-                Log.d(TAG, "connect status " + id + ":" + type);
+                Log.d(TAG, "^_* connect status " + id + ":" + type);
 
                 if (type == GpDevice.STATE_CONNECTING) {
 
@@ -97,9 +105,14 @@ public class PrinterService extends Service {
 
                 } else if (type == GpDevice.STATE_VALID_PRINTER) {
 
+                    try {
+                        printeTestPage(id);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+
 
                 } else if (type == GpDevice.STATE_INVALID_PRINTER) {
-
 
                 }
             }
@@ -142,7 +155,6 @@ public class PrinterService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
 
 
         return super.onStartCommand(intent, flags, startId);

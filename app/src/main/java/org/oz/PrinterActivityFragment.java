@@ -1,16 +1,12 @@
 package org.oz;
 
-import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,20 +14,17 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.clj.fastble.BleManager;
-import com.clj.fastble.callback.BleScanCallback;
 import com.clj.fastble.data.BleDevice;
-import com.clj.fastble.scan.BleScanRuleConfig;
 import com.yf.btp.PrinterService;
 
+import org.oz.dailog.BTDailog;
 import org.oz.databinding.FragmentPrinterBinding;
+import org.oz.entity.BtDev;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 
@@ -48,6 +41,8 @@ public class PrinterActivityFragment extends Fragment {
 
     private Intent intentPrinterService;
 
+    private BTDailog mBTDailog;
+
     public class Handles {
 
         public void onPrinter(View v) {
@@ -57,34 +52,15 @@ public class PrinterActivityFragment extends Fragment {
 
         public void onDiscovery(View v) {
 
-            Log.i("^_*>>>", "开始扫描……");
-
-
-
-            BleManager.getInstance().scan(new BleScanCallback() {
-                @Override
-                public void onScanFinished(List<BleDevice> scanResultList) {
-
-
-                }
-
-                @Override
-                public void onScanStarted(boolean success) {
-
-                }
-
-                @Override
-                public void onScanning(BleDevice bleDevice) {
-
-                    contactBtStr(bleDevice);
-
-                    mBinding.setContent(btStrBuilder.toString());
-
-                }
-            });
-
+            discoveryBt();
 
         }
+
+    }
+
+    private void discoveryBt() {
+
+        mBTDailog.show();
 
     }
 
@@ -114,10 +90,48 @@ public class PrinterActivityFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        initBtDialog();
 
         initData();
 
         initView();
+
+    }
+
+    private void initBtDialog() {
+
+        mBTDailog = new BTDailog(getContext(), android.R.style.Theme_Material_Light_Dialog_NoActionBar_MinWidth);
+
+        mBTDailog.setOnControlListener(new BTDailog.OnControlListener() {
+            @Override
+            public void connect(BtDev dev) {
+
+                try {
+
+                    if (0 == mPrinterService.openPort(dev.getUuid(), PrinterService.PORT_TYPE_BLUETOOTH, dev.getMac(), 0)) {
+
+                        Toast.makeText(getContext(), "connected!!!", Toast.LENGTH_SHORT).show();
+                    }
+
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+
+            @Override
+            public void disconnect(BtDev dev) {
+
+                try {
+                    mPrinterService.closePort(dev.getUuid());
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+        });
 
     }
 

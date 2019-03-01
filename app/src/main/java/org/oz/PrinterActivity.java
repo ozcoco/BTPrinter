@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static android.Manifest.permission.BLUETOOTH_PRIVILEGED;
+
 public class PrinterActivity extends AppCompatActivity {
 
     @Override
@@ -78,7 +80,7 @@ public class PrinterActivity extends AppCompatActivity {
             return;
         }
 
-        String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
+        String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.BLUETOOTH_PRIVILEGED};
         List<String> permissionDeniedList = new ArrayList<>();
         for (String permission : permissions) {
             int permissionCheck = ContextCompat.checkSelfPermission(this, permission);
