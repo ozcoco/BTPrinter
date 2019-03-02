@@ -1,4 +1,4 @@
-package org.oz.widgets;
+package com.yf.btp.widgets;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -35,7 +36,7 @@ public class DecorativeAdapter<VH extends RecyclerView.ViewHolder, E> extends Re
 
     }
 
-    public void setData(List<E> data) {
+    public void setData(Collection<E> data) {
 
         if (data == null) return;
 
@@ -47,6 +48,16 @@ public class DecorativeAdapter<VH extends RecyclerView.ViewHolder, E> extends Re
 
         notifyDataSetChanged();
 
+    }
+
+
+    public void clearData() {
+
+        if (data == null) return;
+
+        this.data.clear();
+
+        notifyDataSetChanged();
     }
 
     public void addData(List<E> data) {

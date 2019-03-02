@@ -1,27 +1,21 @@
 package org.oz;
 
-import android.bluetooth.BluetoothDevice;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.RemoteException;
-import android.util.ArrayMap;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
-import com.clj.fastble.BleManager;
-import com.clj.fastble.data.BleDevice;
 import com.yf.btp.PrinterService;
 
-import org.oz.dailog.BTDialog;
 import org.oz.databinding.FragmentPrinterBinding;
-import org.oz.entity.BtDev;
 
 import java.util.Objects;
 
@@ -35,7 +29,6 @@ import androidx.fragment.app.Fragment;
  */
 public class PrinterActivityFragment extends Fragment {
 
-    private static int BT_DEV_ID_GEN = 0;
 
     private FragmentPrinterBinding mBinding;
 
@@ -45,28 +38,25 @@ public class PrinterActivityFragment extends Fragment {
 
     private Intent intentPrinterService;
 
-    private BTDialog mBTDialog;
-
-    private ArrayMap<String, Integer> macIdMap = new ArrayMap<>();
-
     public class Handles {
 
         public void onPrinter(View v) {
 
-            Log.i("^_*>>>", mPrinterService.getPackageName());
+            new Thread(() -> {
+
+                Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.ic_btm);
+
+                mPrinterService.printBitmap(bmp);
+
+            }).start();
+
         }
 
         public void onDiscovery(View v) {
 
-            discoveryBt();
+            mPrinterService.pickPrinter(getContext());
 
         }
-
-    }
-
-    private void discoveryBt() {
-
-        mBTDialog.show();
 
     }
 
@@ -96,69 +86,9 @@ public class PrinterActivityFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        initBtDialog();
-
         initData();
 
         initView();
-
-    }
-
-    private void initBtDialog() {
-
-        mBTDialog = new BTDialog(getContext(), android.R.style.Theme_Material_Light_Dialog_NoActionBar_MinWidth);
-
-        mBTDialog.setOnControlListener(new BTDialog.OnControlListener() {
-            @Override
-            public void connect(BluetoothDevice dev) {
-
-                try {
-
-                    int devId = BT_DEV_ID_GEN++;
-
-                    macIdMap.put(dev.getAddress(), devId);
-
-                    if (0 == mPrinterService.openPort(devId, PrinterService.PORT_TYPE_BLUETOOTH, dev.getAddress(), 0)) {
-
-                        Toast.makeText(getContext(), "connected!!!", Toast.LENGTH_SHORT).show();
-                    }
-
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-
-
-            }
-
-            @Override
-            public void disconnect(BluetoothDevice dev) {
-
-                try {
-
-                    int devId = macIdMap.get(dev.getAddress());
-
-                    mPrinterService.closePort(devId);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-
-
-            }
-        });
-
-    }
-
-
-    private StringBuilder btStrBuilder = new StringBuilder();
-
-
-    private void contactBtStr(BleDevice device) {
-
-        btStrBuilder.append("Device Name :").append(device.getName()).append('\n');
-
-        btStrBuilder.append("Device Rssi :").append(device.getRssi()).append('\n');
-
-        btStrBuilder.append("Device Address :").append(device.getMac()).append('\n').append('\n').append('\n');
 
     }
 
@@ -190,8 +120,6 @@ public class PrinterActivityFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
-        BleManager.getInstance().destroy();
 
         unbindService();
 
